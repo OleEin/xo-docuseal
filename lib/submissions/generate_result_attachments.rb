@@ -43,7 +43,9 @@ module Submissions
           page.rotate(0, flatten: true) if page[:Rotate] != 0
 
           page[:Annots] ||= []
-          page[:Annots] = page[:Annots].reject { |e| e[:A] && e[:A][:URI].to_s.starts_with?('file:///docuseal_field') }
+          page[:Annots] = page[:Annots].reject do |e|
+            e.present? && e[:A] && e[:A][:URI].to_s.starts_with?('file:///docuseal_field')
+          end
 
           width = page.box.width
           height = page.box.height
@@ -67,7 +69,7 @@ module Submissions
             scale = [(area['w'] * width) / image.width,
                      (area['h'] * height) / image.height].min
 
-            io = StringIO.new(image.resize([scale * 4, 1].min).write_to_buffer('.png'))
+            io = StringIO.new(image.resize([scale * 4, 1].select(&:positive?).min).write_to_buffer('.png'))
 
             canvas.image(
               io,
